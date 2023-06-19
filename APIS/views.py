@@ -93,7 +93,7 @@ def home(request):
     return JsonResponse(data)
 
 
-def get_phrase(request, phrase):
+def get_keywords_list(request, phrase):
     if request.method == 'GET':
         # Process the input phrase using spaCy
         doc = nlp(phrase)
