@@ -1,0 +1,4 @@
+google-ads==21.2.0
+google-auth 
+google-auth-oauthlib 
+google-auth-httplib2

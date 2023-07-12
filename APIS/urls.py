@@ -7,4 +7,6 @@ urlpatterns = [
     path("world_map/<str:term>/",world_map),
     path("top_conversations/<str:term>/",top_conversations),
     path("word_cloud/<str:keyword>/",word_cloud),
+    path('test/',post_data),
+    path('save_query/',save_query),
 ]
