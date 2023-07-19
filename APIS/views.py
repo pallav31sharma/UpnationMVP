@@ -514,3 +514,179 @@ def total_reachable_market(request):
 
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def market_sentiment(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "positive": 28,
+            "neutral": 45,
+            "negative": 10,
+            "mixed": 20
+
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def important_conversations(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "posts": [
+                {
+                    "title": "Missing 15-foot python named \"Big Mama\" found safe and returned to owners",
+                    "url": "https://www.cbsnews.com/news/missing-python-big-mama-found-safe-15-foot/",
+                    "text": "",
+                    "num_comments": 20
+                },
+                {
+                    "title": "Seen today at a python conference, as an example",
+                    "url": "https://i.redd.it/mdjlv17rjxcb1.jpg",
+                    "text": "The speaker had a Sleep token t-shirt, it was most likely to happen 😄",
+                    "num_comments": 14
+                },
+                {
+                    "title": "Python",
+                    "url": "https://i.redd.it/uw4po3k7atcb1.jpg",
+                    "text": "",
+                    "num_comments": 7
+                },
+                {
+                    "title": "Super fire ball python",
+                    "url": "https://www.reddit.com/gallery/15418k0",
+                    "text": "She has almost doubled in weight since I got her at the end of May! This is right after her second shed with me, the first one wasn’t great but we fixed it and she shed this one in one piece!!",
+                    "num_comments": 0
+                },
+                {
+                    "title": "Linear Programming in Python",
+                    "url": "https://slama.dev/youtube/linear-programming-in-python/",
+                    "text": "",
+                    "num_comments": 1
+                }
+            ]
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def latest_conversations(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "posts": [
+                {
+                    "title": "Missing 15-foot python named \"Big Mama\" found safe and returned to owners",
+                    "url": "https://www.cbsnews.com/news/missing-python-big-mama-found-safe-15-foot/",
+                    "text": "",
+                    "num_comments": 20
+                },
+                {
+                    "title": "Seen today at a python conference, as an example",
+                    "url": "https://i.redd.it/mdjlv17rjxcb1.jpg",
+                    "text": "The speaker had a Sleep token t-shirt, it was most likely to happen 😄",
+                    "num_comments": 14
+                },
+                {
+                    "title": "Python",
+                    "url": "https://i.redd.it/uw4po3k7atcb1.jpg",
+                    "text": "",
+                    "num_comments": 7
+                },
+                {
+                    "title": "Super fire ball python",
+                    "url": "https://www.reddit.com/gallery/15418k0",
+                    "text": "She has almost doubled in weight since I got her at the end of May! This is right after her second shed with me, the first one wasn’t great but we fixed it and she shed this one in one piece!!",
+                    "num_comments": 0
+                },
+                {
+                    "title": "Linear Programming in Python",
+                    "url": "https://slama.dev/youtube/linear-programming-in-python/",
+                    "text": "",
+                    "num_comments": 1
+                }
+            ]
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def correlated_keywords(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "Demographic": 40,
+            "Trends": 30,
+            "Segmentation": 50,
+            "Analytics": 20,
+            "Forecasting": 30,
+            "Behaviour": 40,
+            "Competition": 50,
+            "Opportunity": 30
+
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def query_search_volume(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "items": [
+                {
+                    "query": "apple",
+                    "monthly_searches": 10000,
+                    "competition": "high"
+                },
+                {
+                    "query": "banana",
+                    "monthly_searches": 8000,
+                    "competition": "medium"
+                },
+                {
+                    "query": "chocolate",
+                    "monthly_searches": 12000,
+                    "competition": "low"
+                },
+                {
+                    "query": "dog food",
+                    "monthly_searches": 5000,
+                    "competition": "medium"
+                },
+                {
+                    "query": "exercise equipment",
+                    "monthly_searches": 9000,
+                    "competition": "high"
+                },
+                {
+                    "query": "furniture",
+                    "monthly_searches": 7000,
+                    "competition": "low"
+                },
+                {
+                    "query": "gaming laptop",
+                    "monthly_searches": 11000,
+                    "competition": "medium"
+                },
+                {
+                    "query": "headphones",
+                    "monthly_searches": 15000,
+                    "competition": "high"
+                },
+                {
+                    "query": "ice cream",
+                    "monthly_searches": 6000,
+                    "competition": "low"
+                },
+                {
+                    "query": "jewelry",
+                    "monthly_searches": 10000,
+                    "competition": "medium"
+                }
+            ]
+        }
+        )
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)

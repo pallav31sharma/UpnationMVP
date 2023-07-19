@@ -17,5 +17,11 @@ urlpatterns = [
     path('dashboard/total_reachable_market/', total_reachable_market),
     path('discovery/chat_api/', chat_api),
     path('discovery/generate/', generate),
+    path('social/market_sentiment',market_sentiment),
+    path('social/important_conversations',important_conversations),
+    path('social/latest_conversations',latest_conversations),
+    path('social/correlated_keywords',correlated_keywords),
+    path('social/query_search_volume',query_search_volume),
+
 
 ]
