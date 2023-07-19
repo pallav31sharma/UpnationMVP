@@ -7,11 +7,15 @@ from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render, get_object_or_404
 import json
 import sys
 from django.http import JsonResponse
 from .Google_Ads_Api import kwy
+import openai
+import re
+
+openai.api_key = "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"
 
 _DEFAULT_LOCATION_IDS = ["1023191"]  # location ID for New York, NY
 _DEFAULT_LANGUAGE_ID = "1000"  # language ID for English
@@ -64,6 +68,7 @@ def get_keywords(phrase):
     print("Keywords:", filtered_keywords)
 
     return filtered_keywords
+
 
 @csrf_exempt
 def save_query(request):
@@ -181,17 +186,15 @@ def world_map(requests, term):
 
         # saving the data to the database
         try:
-            world_map=WorldMap()
-            world_map.keyword=term.lower()
-            world_map.world_map=data
+            world_map = WorldMap()
+            world_map.keyword = term.lower()
+            world_map.world_map = data
             world_map.save()
         except IntegrityError:
             # Handle the case when a duplicate primary key is encountered
             existing_object = WorldMap.objects.get(keyword=term.lower())
             existing_object.world_map = data
             existing_object.save()
-
-
 
         # Return the JSON response
         return JsonResponse(data)
@@ -218,11 +221,11 @@ def top_conversations(request, term):
 
         data = {'posts': posts}
 
-        #save data to the databse
+        # save data to the databse
         try:
-            top_conversations=TopConversations()
-            top_conversations.keyword=term.lower()
-            top_conversations.top_conversations=data
+            top_conversations = TopConversations()
+            top_conversations.keyword = term.lower()
+            top_conversations.top_conversations = data
             top_conversations.save()
         except IntegrityError:
             # Handle the case when a duplicate primary key is encountered
@@ -276,16 +279,15 @@ def word_cloud(request, keyword):
         data = {'word_freq': word_freq}
 
         try:
-            word_cloud=WordCloud()
-            word_cloud.keyword=keyword.lower()
-            word_cloud.word_cloud=data
+            word_cloud = WordCloud()
+            word_cloud.keyword = keyword.lower()
+            word_cloud.word_cloud = data
             word_cloud.save()
         except IntegrityError:
             # Handle the case when a duplicate primary key is encountered
             existing_object = WordCloud.objects.get(keyword=term.lower())
             existing_object.word_cloud = data
             existing_object.save()
-
 
         return JsonResponse(data)
 
@@ -326,6 +328,189 @@ def post_data(request):
             # sys.exit(1)
 
         return JsonResponse({'error': 'Some errro occured'})
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# api for getting the response of the message using chatgpt
+@csrf_exempt
+def chat_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+        message = data.get('message')
+
+        # Retrieve user or create a new user if not exists
+        user, created = User.objects.get_or_create(email=email)
+
+        # Retrieve conversation history associated with the user
+        chats = Chat.objects.filter(user=user).order_by('created_at')
+
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant."}
+        ]
+
+        # retrieving old conversations
+        for chat in chats:
+            messages.append({"role": "user", "content": chat.message})
+            messages.append({"role": "assistant", "content": chat.response})
+
+        # print(messages)
+        messages.append({"role": "user", "content": message})
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+
+        # Save the chat in the database
+        Chat.objects.create(user=user, message=message, response=response.choices[0].message.content)
+
+        # Return the response
+        return JsonResponse({'response': response.choices[0].message.content})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# api for saving and returning the keywords of the users conversation with chatgpt
+# this will be called when user clicks the generate button in the frontend
+@csrf_exempt
+def generate(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+
+        # Retrieve user or create a new user if not exists
+        user, created = User.objects.get_or_create(email=email)
+
+        # Retrieve conversation history associated with the user
+        chats = Chat.objects.filter(user=user).order_by('created_at')
+
+        messages = [
+            {"role": "system", "content": "You are a chatbot designed to assist with startup ideas. Users can talk to "
+                                          "you about their startup ideas and seek advice. At the end of the "
+                                          "conversation, you will extract the most important keywords based on you "
+                                          "understanding "
+                                          "which will help the user to do market research on startup his startup idea."}
+        ]
+
+        # retrieving old conversations
+        for chat in chats:
+            messages.append({"role": "user", "content": chat.message})
+            messages.append({"role": "assistant", "content": chat.response})
+
+        print(messages)
+        message = "extract keywords"
+        messages.append({"role": "user", "content": message})
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+
+        # # Save the chat in the database
+        # Chat.objects.create(user=user, message=message, response=response.choices[0].message.content)
+
+        response_text = response.choices[0].message.content
+
+        print(response_text)
+        # Extract the keywords using regular expressions(all words starting form a number and dot and ending with
+        # newline)
+        keywords = re.findall(r'\d+\.\s(.*?)\n', response_text)
+        # The regular expression r'\d+\.\s(.*?)\n' is used to find all the keywords that start with a number followed
+        # by a dot and a space, and end with a newline character.
+
+        print(keywords)
+
+        data = {'keywords': keywords}
+        # Save or update the keywords for the user
+
+        keywords_obj, _ = Keywords.objects.update_or_create(
+            user=user,
+            defaults=data
+        )
+        # if the user exists then update the keywords and if it doesn't exists then
+        # create a new object with (user,keywords)
+
+        # Return the response
+        return JsonResponse({'keywords': keywords})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# here are apis that will be used by the frontend developer
+
+def market_growth(request):
+    # it will make use of world_map api
+    if request.method == 'GET':
+        return JsonResponse({
+            "years": [
+                "2018",
+                "2019",
+                "2020",
+                "2021",
+                "2022"
+            ],
+            "trend": [
+                12,
+                18,
+                50,
+                22,
+                35
+            ]
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def top_google_searches(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "keywords": [
+                "market_survey",
+                "paid focus groups",
+                "market research companies",
+                "paid market research",
+                "market study",
+                "market study"
+            ],
+            "volume": [
+                4400,
+                1900,
+                4400,
+                4400,
+                4400,
+                4400
+            ]
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def business_score(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "business_score": 25
+
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def division_of_market_share(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "monopoly": 75,
+            "competitive": 25
+
+        })
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def total_reachable_market(request):
+    if request.method == 'GET':
+        return JsonResponse({
+            "total_reachable_market": 189991,
+
+        })
 
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
